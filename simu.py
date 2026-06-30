@@ -10,7 +10,7 @@ from tqdm import tqdm
 from itertools import product
 import statistics as stat
 
-test=False
+test=True
 
 #configuration : classe de paramètres. par défaut short term 
 class config:
@@ -374,7 +374,7 @@ def analyze_minimas(minimas):
 if test:
     workdir = os.path.dirname(os.path.abspath(__file__))
     datadir=os.path.join(workdir, "data/tests")
-    cfg=config(datadir=datadir, term='mid', tfin=50000)
+    cfg=config(datadir=datadir, term='mid', tfin=400)
     cfg.taukappa=10000
     cfg.deltakappa=cfg.kappaeq*1e-3
     cfg.tauepsilon=10000
