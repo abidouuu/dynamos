@@ -10,7 +10,7 @@ from tqdm import tqdm
 from itertools import product
 import statistics as stat
 
-test=True
+test=False
 
 #configuration : classe de paramètres. par défaut short term 
 class config:

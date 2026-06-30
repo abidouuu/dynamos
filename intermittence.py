@@ -18,8 +18,8 @@ matplotlib.use("Agg")
 epsilons=[-0.1, 0, 0.1]
 kappas=[0.01,0.1, 1]
 Lambdas=[0.01,0.1]
-taus=[1000,10000]
-deltas=[1e-3,1e-4,1e-5]
+taus=[10000,100000]
+deltas=[1e-4,1e-5]
 inter_list=[(True,False), (False,True), (True, True)]
 workdir = os.path.dirname(os.path.abspath(__file__))
 datadir=os.path.join(workdir, "data/intermittence")
@@ -41,7 +41,7 @@ def simu_intermittence(show=False):
                 for (inter_kappa,inter_epsilon) in inter_list : 
                     cfg=config(datadir=folder_kappa, term='mid', epsiloneq=epsilon, 
                         Lambda=Lambda,kappaeq=kappa, inter_kappa=inter_kappa,inter_epsilon=inter_epsilon,
-                        tfin=150000, simu_title="kappa_"+str(inter_kappa)+"_epsilon_"+str(inter_epsilon))
+                        tfin=1500, simu_title="kappa_"+str(inter_kappa)+"_epsilon_"+str(inter_epsilon))
                     (B_eq,b_eq)=cfg.get_eq()[0]
                     cfg.B0=B_eq
                     cfg.b0=b_eq  
