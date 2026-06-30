@@ -215,7 +215,7 @@ class config:
     
     #plot temporel
     possible_plots = Literal["Bb","B","b","epsilon","kappa"] #quel plot faire en fonction du temps
-    def plot_time(self, data, type: possible_plots, eq=False, show=True, name=None, minimas=None):  
+    def plot_time(self, data, type: possible_plots, eq=False, show=True, name=None, minimas=None, eps=False):  
         t = data[:, 0]
         B = data[:, 1]
         b = data[:, 2]
@@ -269,10 +269,13 @@ class config:
         except Exception:
             pass
         if name is None :
-            savefile = os.path.join(self.folder, f"plot_{type}.png")
+            savefile_png = os.path.join(self.folder, f"plot_{type}.png")
+            if eps : savefile_eps = os.path.join(self.folder, f"plot_{type}.eps")
         else : 
-            savefile=os.path.join(self.folder, name)
-        plt.savefig(savefile)
+            savefile_png=os.path.join(self.folder, name + ".png")
+            if eps : savefile_eps = os.path.join(self.folder, name + ".eps")
+        plt.savefig(savefile_png)
+        if eps : plt.savefig(savefile_eps)
         if show : plt.show()
         plt.close(fig)
 

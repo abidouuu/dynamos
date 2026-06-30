@@ -77,9 +77,9 @@ def simu_intermittence(show=False):
                     ax2.legend(fontsize=8)
 
                     fig.tight_layout()
-                    #savefile_eps = os.path.join(cfg.folder, f"plot.eps")
+                    savefile_eps = os.path.join(cfg.folder, f"plot.eps")
                     savefile_png = os.path.join(cfg.folder, f"plot.png")
-                    #plt.savefig(savefile_eps)
+                    plt.savefig(savefile_eps)
                     plt.savefig(savefile_png)
                     if show : plt.show()
                     plt.close(fig)
@@ -95,8 +95,23 @@ def simu_intermittence(show=False):
             cfg.plot_histograms(minimas_list=minimas_list_FalseTrue,differentfolder=folder_epsilon, name="minimas_False_True.png")
             cfg.plot_histograms(minimas_list=minimas_list_TrueFalse,differentfolder=folder_epsilon, name="minimas_True_False.png")
 
+def skumanich():
+    workdir = os.path.dirname(os.path.abspath(__file__))
+    datadir=os.path.join(workdir, "data/skumanich")
+
+    for i in tqdm(range(4), desc="skumanich"):
+        cfg=config(datadir=datadir, term='long', tfin=100000)
+        cfg.nu=random.choice([0.1,1,10,100])
+        data=cfg.run(save=False)
+        cfg.write_config_file
+        minimas=cfg.stat_analysis(data)
+        cfg.write_stat_file(minimas)
+        cfg.plot_time(data=data, type='Bb', show=False)
+        cfg.plot_time(data=data, type='kappa', show=False)
+        cfg.plot_time(data=data, type='epsilon', show=False)
 
 simu_intermittence(show=False)
+skumanich()
             
 
 
