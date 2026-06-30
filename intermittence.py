@@ -1,19 +1,22 @@
-#run des longues simulations (tfin~50k) pour les paramètres de charbonneau
-#peut-être avoir comme balaye sigma, plusieurs courbes (différents couplages) selon les paramètres
-#calculer les statistiques : fraction de temps passé en minimum; faire l'histogramme analogue à la table 2
-#tracer les courbes de fraction en fonction de paramètres d'intérêt ?
+# Mettez ces lignes TOUT EN HAUT de votre fichier
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning) # Cible les alertes de backend
+warnings.filterwarnings("ignore")
 
+import logging
+logging.getLogger('matplotlib').setLevel(logging.ERROR)
+
+# Vos autres imports suivent ensuite
 import numpy as np
 import matplotlib
+matplotlib.use("Agg") # Configuration du backend avant plt
 import matplotlib.pyplot as plt
 import random
 import os
 from simu import config
 from tqdm import tqdm
 from itertools import product
-import warnings
-warnings.filterwarnings("ignore", category=UserWarning)
-matplotlib.use("Agg")
+
 
 epsilons=[-0.1, 0, 0.1]
 kappas=[0.01,0.1, 1]
@@ -41,7 +44,7 @@ def simu_intermittence(show=False):
                 for (inter_kappa,inter_epsilon) in inter_list : 
                     cfg=config(datadir=folder_kappa, term='mid', epsiloneq=epsilon, 
                         Lambda=Lambda,kappaeq=kappa, inter_kappa=inter_kappa,inter_epsilon=inter_epsilon,
-                        tfin=1500, simu_title="kappa_"+str(inter_kappa)+"_epsilon_"+str(inter_epsilon))
+                        tfin=200000, simu_title="kappa_"+str(inter_kappa)+"_epsilon_"+str(inter_epsilon))
                     (B_eq,b_eq)=cfg.get_eq()[0]
                     cfg.B0=B_eq
                     cfg.b0=b_eq  

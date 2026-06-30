@@ -32,13 +32,12 @@ vector<double> operator+(const vector<double>& a, const vector<double>& b) {
 
 //constructeur
 dynamo::dynamo(int argc, char* argv[]) {
-    string inputpath("configuration.in");
+    fs::path inputpath("configuration.in");
     if (argc > 1) {
-        //inputpath = argv[1]+string("\\configuration.in");
-        inputpath = argv[1]+string("/configuration.in"); 
+        inputpath = fs::path(argv[1]) / "configuration.in"; 
     }
 
-    configfile configfile(inputpath);
+    configfile configfile(inputpath.string()); 
 
     for (int i(2); i < argc; i++) {
         configfile.process(argv[i]);
@@ -67,8 +66,7 @@ dynamo::dynamo(int argc, char* argv[]) {
     tfin = configfile.get<double>("tfin");
 
     if (argc > 1) {
-        //string outputpath = argv[1]+string("\\output.txt");
-        string outputpath = argv[1]+string("/output.txt");
+        fs::path outputpath = fs::path(argv[1]) / "output.txt";
         outputfile = make_unique<ofstream>(outputpath);
     }if (!outputfile->is_open()) {
         cerr << "Erreur : impossible d'ouvrir output.txt" << endl;
