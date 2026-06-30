@@ -1,0 +1,4 @@
+- différents mécanismes d'intermittence : faire varier kappa, sigma, ou les deux.
+- statistiques : calcul de fréquence, durée moyenne, déviation standard. plot fréquence/durée normalisée
+- skumanich : voir comment varie la fréquence dans le temps, analyser comment varie B avec vitesse angulaire ; peut-on justifier B \propto \Omega
+- faire des graphes qui cherchent le kappa_max 
