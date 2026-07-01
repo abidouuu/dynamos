@@ -1,4 +1,5 @@
-- différents mécanismes d'intermittence : faire varier kappa, sigma, ou les deux.
-- statistiques : calcul de fréquence, durée moyenne, déviation standard. plot fréquence/durée normalisée
-- skumanich : voir comment varie la fréquence dans le temps, analyser comment varie B avec vitesse angulaire ; peut-on justifier B \propto \Omega
-- faire des graphes qui cherchent le kappa_max 
+- vary_X : faire vary_lambda aussi pourquoi pas
+- intermittence : lancer les grosses simu tfin=1e6. faire log/lin pour les histogrammes
+- skumanich : plot omega, B et b en log/lin. penser au (D-D_crit) et l'implémenter correctement. plot aussi le pourcentage en fréquence par blocs 
+de t=100k. faire tous les nus possibles.
+- faire une FFT pour l'intermittence, faire sortir le spectre de epsilon et kappa

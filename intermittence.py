@@ -44,7 +44,7 @@ def simu_intermittence(show=False):
                 for (inter_kappa,inter_epsilon) in inter_list : 
                     cfg=config(datadir=folder_kappa, term='mid', epsiloneq=epsilon, 
                         Lambda=Lambda,kappaeq=kappa, inter_kappa=inter_kappa,inter_epsilon=inter_epsilon,
-                        tfin=200000, simu_title="kappa_"+str(inter_kappa)+"_epsilon_"+str(inter_epsilon))
+                        tfin=2e6, simu_title="kappa_"+str(inter_kappa)+"_epsilon_"+str(inter_epsilon))
                     (B_eq,b_eq)=cfg.get_eq()[0]
                     cfg.B0=B_eq
                     cfg.b0=b_eq  
