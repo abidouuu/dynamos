@@ -1,0 +1,27 @@
+SAVE FIGS BRO COME ON !!!
+
+Balaye 1 & 2 : esthétisme des figures. 
+    • Epaissir tous les traits (cadre et courbes), au moins x2. 
+    • Agrandir les légendes + titres, au moins x4. 
+    • Réduire l'intervalle de kappa = [-2,2]. 
+    • lus grande diversité de couleur pour les bleus. 
+    • Changer 1eX pour 0.00X. 
+    • Changer "B_landau" pour "B_eq".
+
+Intermittence 1 : mettre, pour un même couple (epsilon, Lambda), 3 courbes de kappa en couleurs différentes, avec les kappas affichés juste 
+au dessus dans la couleur correspondante. 
+
+Intermittence 2 : faire 4 graphes de régions caractéristiques (pas d'intermittence ; intermittence violente ; intermittence clean ;
+dynamo morte), ne pas mettre les variations epsilon/kappa en dessous (les sauvegarder tho). Par sécurité, garder toutes les manières de vary.
+
+Intermittence 3 : Faire une figure dans le plan (epsilon, kappa) qui montre, pour une simulation avec intermittence, la trajectoire prise. 
+Faire un trait plutôt épais, avec un code couleur proportionnel à B. Highlight en fond la zone qui tue la dynamo, l'autr qui la permet 
+(à l'équilibre). Mettre une figure en dessous montrant la FFT de epsilon et kappa. 
+
+Intermittence 4 : Faire les histogrammes en log/lin. 
+
+Skumanich 1 : Longues simulations, pour lesquelles on plot B(t), b(t), kappa(t), epsilon(t), Omega(t). S'assurer avant d'en faire des longues 
+que epsilon a les bonnes valeurs numériques. Décrire dans l'overleaf comment on fait évoluer numériquement nos paramètres.
+
+Skumanich 2 : Pour chaque simulation de Skumanich 1, disons 10 tranches par simulation, faire des lognues simulations 'mid' en prenant 
+l'epsilon actuel comme espilon_eq, et faire un histogramme de % de temps passé en Grand Minimum. 
