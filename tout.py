@@ -400,7 +400,7 @@ def big_simus():
                                      epsiloneq=epsiloneq, Lambda=Lambda, kappaeq=kappaeq,
                                      inter_kappa=inter_kappa, inter_epsilon=inter_epsilon,
                                      tauepsilon=tauepsilon, taukappa=taukappa,
-                                     deltapesilon=deltaepsilon, deltakappa=deltakappa,
+                                     deltaepsilon=deltaepsilon, deltakappa=deltakappa,
                                      run_index=run_idx + 1)
                         (B_eq, b_eq) = cfg.get_eq()[0]
                         cfg.B0 = B_eq
