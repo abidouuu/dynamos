@@ -475,5 +475,5 @@ def big_simus():
     tqdm.write("Simulations d'intermittence : fin")
 
 if __name__ == "__main__":
-    court_terme()
-    #big_simus()
+    #court_terme()
+    big_simus()
