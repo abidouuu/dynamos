@@ -6,6 +6,7 @@ import os
 from simu import config
 from tqdm import tqdm
 from math import sqrt
+import random
 from scipy.signal import find_peaks
 from matplotlib.cm import Blues, Oranges, Greens
 from matplotlib.collections import LineCollection
@@ -221,7 +222,7 @@ datadir_mid = os.path.join(datadir, "2_Moyen_terme_Intermittence")
 Lambdas = [0.01,0.1]
 epsiloneqs = [-0.1, 0, 0.1]
 kappaeqs = [0, 0.1, 1]
-inter_list = [(True, False), (False, True), (True,True)]  # kappa, epsilon
+inter_list = [(False, True)]  # kappa, epsilon
 
 
 def plot_fig5(epsilon_data, kappa_data, B, folder):
@@ -390,9 +391,16 @@ def big_simus():
                     fig_3_B, ax_3_B = new_figure()
                     fig_3_b, ax_3_b = new_figure()
                     minimas_folder = os.path.join(folder_fig_3, "minimas")
+                    tauepsilon = 10**4
+                    taukappa = random.choice([10**3,10**4])
+                    deltaepsilon = random.choice([10**(-4),10**(-5)])
+                    deltakappa = random.choice([10**(-4),10**(-5)])
                     for run_idx, kappaeq in enumerate(tqdm(kappaeqs, desc="kappa_dependency", position=2, leave=False)):
                         cfg = config(datadir=folder_fig_3, term='mid',
                                      epsiloneq=epsiloneq, Lambda=Lambda, kappaeq=kappaeq,
+                                     inter_kappa=inter_kappa, inter_epsilon=inter_epsilon,
+                                     tauepsilon=tauepsilon, taukappa=taukappa,
+                                     deltapesilon=deltaepsilon, deltakappa=deltakappa,
                                      run_index=run_idx + 1)
                         (B_eq, b_eq) = cfg.get_eq()[0]
                         cfg.B0 = B_eq
@@ -430,7 +438,8 @@ def big_simus():
                     for kappaeq in tqdm(kappaeqs, desc="skumanich", position=2, leave=False):
                         kappaeq_folder = os.path.join(skumanich_folder, "kappaeq=" + str(kappaeq))
                         cfg = config(datadir=kappaeq_folder, term='long',
-                                     epsiloneq=epsiloneq, Lambda=Lambda, kappaeq=kappaeq, run_index=1)
+                                     epsiloneq=epsiloneq, Lambda=Lambda, kappaeq=kappaeq, run_index=1,
+                                     inter_kappa=inter_kappa, inter_epsilon=inter_epsilon)
                         (B_eq, b_eq) = cfg.get_eq(skuma=True)[0]
                         cfg.B0 = B_eq
                         cfg.b0 = b_eq
@@ -446,7 +455,8 @@ def big_simus():
                         cfg = None
                         for i in range(2):
                             cfg = config(datadir=kappaeq_folder, term='mid',
-                                         epsiloneq=epsiloneq, Lambda=Lambda, kappaeq=kappaeq, run_index=i + 1)
+                                         epsiloneq=epsiloneq, Lambda=Lambda, kappaeq=kappaeq, run_index=i + 1,
+                                         inter_kappa=inter_kappa, inter_epsilon=inter_epsilon)
                             (B_eq, b_eq) = cfg.get_eq()[0]
                             cfg.B0 = B_eq
                             cfg.b0 = b_eq
@@ -465,5 +475,5 @@ def big_simus():
     tqdm.write("Simulations d'intermittence : fin")
 
 if __name__ == "__main__":
-    #court_terme()
-    big_simus()
+    court_terme()
+    #big_simus()
