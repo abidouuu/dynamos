@@ -1,5 +1,3 @@
-# Fichier général qui fait tous les plots de l'article. Une fonction par graphique. Harmonisation de l'esthétisme.
-
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -18,11 +16,11 @@ logging.getLogger('matplotlib.backends.backend_ps').setLevel(logging.ERROR)
 from plot_style import PLOT_STYLE
 
 workdir = os.path.dirname(os.path.abspath(__file__))
-datadir = os.path.join(workdir, "data")
+datadir = os.path.join(workdir, "data_prout")
 
 
 # ==========================================================================================================
-# -------------- FONCTIONS UTILITAIRES (facteur commun à toutes les figures) -------------------------------
+# -------------- FONCTIONS UTILITAIRES ---------------------------------------------------------------------
 # ==========================================================================================================
 
 def new_figure(figsize=None, nrows=1, ncols=1, sharex=False):
@@ -111,6 +109,13 @@ def save_fig(fig, folder, filename,
     if close:
         plt.close(fig)
 
+
+def fmt_num(x):
+    """Formate un nombre en notation décimale (0.01) plutôt que
+    scientifique (1e-2), tout en évitant les zéros parasites."""
+    s = f"{x:g}"
+    return s
+
 # ==========================================================================================================
 # -------------- FIGURES 1 & 2 - Solutions analytiques -----------------------------------------------------
 # ==========================================================================================================
@@ -119,7 +124,7 @@ datadir_fig1 = os.path.join(datadir_short, "Figure_1_balaye_kappa")
 datadir_fig2 = os.path.join(datadir_short, "Figure_2_balaye_epsilon")
 
 
-def balayage(vary_epsilon):  # x varie continûment, y quelques courbes.
+def balayage(vary_epsilon, show_lambda=True):  # x varie continûment, y quelques courbes.
     Lambdas = [0.001, 0.01, 0.1, 1]
     epsilons_x = np.linspace(-2, 2, 10000)
     kappas_x = 10 ** np.linspace(-3, 2, 10000)
@@ -144,12 +149,14 @@ def balayage(vary_epsilon):  # x varie continûment, y quelques courbes.
         fig, (axB, axb) = new_figure(figsize=PLOT_STYLE["figsize_double_tall"], nrows=2, sharex=True)
         xscale = None if vary_epsilon else 'log'
 
-        blues = Blues(np.linspace(0.35, 0.95, len(ys)))
-        oranges = Oranges(np.linspace(0.35, 0.95, len(ys)))
+        # gamme élargie (0.15 à 1.0) pour des couleurs mieux distinguables,
+        # notamment entre les courbes voisines
+        blues = Blues(np.linspace(0.15, 1.0, len(ys)))
+        oranges = Oranges(np.linspace(0.15, 1.0, len(ys)))
 
         if not vary_epsilon:
             greens_bool = [a >= 0 for a in ys]
-            greens = Greens(np.linspace(0.35, 0.95, len(greens_bool)))
+            greens = Greens(np.linspace(0.15, 1.0, len(greens_bool)))
 
         first = True
         # FIX: green_idx must be initialized once, OUTSIDE the y-loop, so that
@@ -182,15 +189,16 @@ def balayage(vary_epsilon):  # x varie continûment, y quelques courbes.
                 b_landau.append(1)
 
             if vary_epsilon:
-                label = rf"$\kappa={y:.1e}$"
-                axB.plot(xs, B_landau, color='green', ls="--", lw=PLOT_STYLE["linewidth"], label="B_landau" if first else None)
-                axb.plot(xs, b_landau, color='green', ls="--", lw=PLOT_STYLE["linewidth"], label="b_landau" if first else None)
+                label = rf"$\kappa={fmt_num(y)}$"
+                axB.plot(xs, B_landau, color='green', ls="--", lw=PLOT_STYLE["linewidth"], label=r"$B_\text{eq}}" if first else None)
+                axb.plot(xs, b_landau, color='green', ls="--", lw=PLOT_STYLE["linewidth"], label=r"$b_\text{eq}}" if first else None)
                 first = False
             else:
-                label = rf"$\varepsilon={y:.1e}$"
-                axb.plot(xs, b_landau, color='green', ls="--", lw=PLOT_STYLE["linewidth"], label="b_landau" if first else None)
+                label = rf"$\varepsilon={fmt_num(y)}$"
+                axb.plot(xs, b_landau, color='green', ls="--", lw=PLOT_STYLE["linewidth"], label=r"$b_\text{eq}}" if first else None)
+                First=False
                 if y >= 0:
-                    axB.plot(xs, B_landau, color=greens[green_idx], ls="--", lw=PLOT_STYLE["linewidth"], label="B_landau : " + label)
+                    axB.plot(xs, B_landau, color=greens[green_idx], ls="--", lw=PLOT_STYLE["linewidth"], label=r"$B_\text{eq}} : " + label)
                     green_idx += 1
 
             axB.plot(xs, B, color=blues[y_idx], lw=PLOT_STYLE["linewidth"], label=label)
@@ -198,6 +206,15 @@ def balayage(vary_epsilon):  # x varie continûment, y quelques courbes.
 
         style_axis(axB, ylabel="B", xscale=xscale)
         style_axis(axb, xlabel=r"$\varepsilon$" if vary_epsilon else r"$\kappa$", ylabel="b", xscale=xscale)
+
+        if show_lambda:
+            axB.text(
+                0.02, 0.95, rf"$\Lambda={fmt_num(Lambda)}$",
+                transform=axB.transAxes,
+                fontsize=PLOT_STYLE["label_fontsize"],
+                color="black",
+                va="top", ha="left"
+            )
 
         fig.tight_layout()
         cfg.write_config_file()
@@ -207,12 +224,12 @@ def balayage(vary_epsilon):  # x varie continûment, y quelques courbes.
     else: print("Balayage de kappa : fini")
 
 
-def fig_1(): balayage(False)
-def fig_2(): balayage(True)
+def fig_1(show_lambda=True): balayage(False, show_lambda=show_lambda)
+def fig_2(show_lambda=True): balayage(True, show_lambda=show_lambda)
 
-def court_terme():
-    fig_1()
-    fig_2()
+def court_terme(show_lambda=True):
+    fig_1(show_lambda=show_lambda)
+    fig_2(show_lambda=show_lambda)
 
 
 # ==========================================================================================================
@@ -222,7 +239,7 @@ datadir_mid = os.path.join(datadir, "2_Moyen_terme_Intermittence")
 Lambdas = [0.01,0.1]
 epsiloneqs = [-0.1, 0, 0.1]
 kappaeqs = [0, 0.1, 1]
-inter_list = [(False, True)]  # kappa, epsilon
+inter_list = [(True, False)]  # kappa, epsilon
 
 
 def plot_fig5(epsilon_data, kappa_data, B, folder):
@@ -377,6 +394,72 @@ def plot_fig4(t, B, b, kappa_data, epsilon_data, inter_kappa, inter_epsilon, fol
     save_fig(fig_4_B_b, folder, "Fig_4_B_b")
     save_fig(fig_4_stat, folder, "Fig_4_stat")
 
+def skumanich_v2(folder, cfg :config, data_avg):
+    epsilons=data_avg[:,4][::100]
+    ts=data_avg[:,0][::100]
+    kappas=data_avg[:,3][::100]
+    Omegas=data_avg[:,5][::100]
+    B_means=[]
+    B_stddevs=[]
+    b_means=[]
+    b_stddevs=[]
+    for epsiloneq in epsilons : 
+        cfg_new= config(datadir=folder, term='mid',
+                    epsiloneq=epsiloneq, Lambda=cfg.Lambda, kappaeq=cfg.kappaeq, run_index=1,
+                    inter_kappa=True, inter_epsilon=True,
+                    taukappa=cfg.taukappa, deltaepsilon=cfg.deltaepsilon, deltakappa=cfg.deltakappa,
+                    tfin=500)
+        data=cfg_new.run(save=False)
+        B_means.append(np.mean(data[:,1]))
+        B_stddevs.append(np.std(data[:,1]))
+        b_means.append(np.mean(data[:,2]))
+        b_stddevs.append(np.std(data[:,2]))
+    data_new = np.column_stack((ts, B_means, b_means, kappas, epsilons, Omegas))
+    stddev_new = np.column_stack((np.zeros_like(ts), B_stddevs, b_stddevs))
+
+    os.makedirs(folder, exist_ok=True)
+    np.savetxt(os.path.join(folder, "output.txt"), data_new)
+
+    return data_new, stddev_new
+
+
+def plot_B_omega(data, folder, name="Fig_B_omega", stddevs=None):
+    """Trace B en fonction d'Omega (au lieu de B(t)).
+    Fonctionne aussi bien avec les données skumanich_v1 (t,B,b,kappa,epsilon,Omega,
+    6 colonnes) qu'avec celles de skumanich_v2 (même ordre de colonnes)."""
+    Omega = data[:, 5]
+    B = data[:, 1]
+
+    # on trie par Omega croissant pour avoir une courbe/bande propre
+    order = np.argsort(Omega)
+    Omega_sorted = Omega[order]
+    B_sorted = B[order]
+
+    fig, ax = new_figure()
+
+    ax.plot(
+        Omega_sorted, B_sorted,
+        color=PLOT_STYLE["color_B"],
+        lw=PLOT_STYLE["linewidth"],
+        label=r"$B(\Omega)$"
+    )
+
+    if stddevs is not None:
+        B_stddev = stddevs[:, 1][order]
+        ax.fill_between(
+            Omega_sorted,
+            B_sorted - B_stddev,
+            B_sorted + B_stddev,
+            color=PLOT_STYLE["color_B"],
+            alpha=0.25
+        )
+
+    style_axis(ax, xlabel=r"$\Omega$", ylabel="B")
+
+    fig.tight_layout()
+    save_fig(fig, folder, name)
+
+
 def big_simus():
     tqdm.write("Simulations d'intermittence : début")
     for Lambda in tqdm(Lambdas, desc="Lambda", position=0, leave=True):
@@ -400,19 +483,17 @@ def big_simus():
                                      epsiloneq=epsiloneq, Lambda=Lambda, kappaeq=kappaeq,
                                      inter_kappa=inter_kappa, inter_epsilon=inter_epsilon,
                                      tauepsilon=tauepsilon, taukappa=taukappa,
-                                     deltaepsilon=deltaepsilon, deltakappa=deltakappa,
+                                     deltaepsilon=deltaepsilon, deltakappa=deltakappa, tfin=1000,
                                      run_index=run_idx + 1)
                         (B_eq, b_eq) = cfg.get_eq()[0]
                         cfg.B0 = B_eq
                         cfg.b0 = b_eq
-                        data_list, data_avg = cfg.run_and_avg(save_all=True)
+                        data_list, data_avg, _ = cfg.run_and_avg(save_all=True, save_figs=True)
                         minimas_total = []
                         for data in data_list:
                             minimas = cfg.stat_analysis(data)
                             cfg.write_stat_file(minimas=minimas)
                             minimas_total.extend(minimas)
-                        cfg.plot_histograms(minimas_list=minimas_total, differentfolder=minimas_folder,
-                                             name="kappaeq=" + str(kappaeq) + ".png")
                         cfg.plot_histograms(minimas_list=minimas_total, differentfolder=minimas_folder,
                                              name="kappaeq=" + str(kappaeq) + ".png")
                         cfg.plot_time(data=data_avg, type='epsilon', differentfolder=folder_fig_3, name="stat_kappa="+str(kappaeq))
@@ -434,18 +515,34 @@ def big_simus():
                     cfg.write_config_file()
 
                 if inter_kappa and (not inter_epsilon):
-                    skumanich_folder = os.path.join(epsiloneq_folder, "skumanich")
+                    skumanich_v1_folder = os.path.join(epsiloneq_folder, "skumanich_v1")
+                    skumanich_v2_folder = os.path.join(epsiloneq_folder, "skumanich_v2")
                     for kappaeq in tqdm(kappaeqs, desc="skumanich", position=2, leave=False):
-                        kappaeq_folder = os.path.join(skumanich_folder, "kappaeq=" + str(kappaeq))
-                        cfg = config(datadir=kappaeq_folder, term='long',
-                                     epsiloneq=epsiloneq, Lambda=Lambda, kappaeq=kappaeq, run_index=1,
-                                     inter_kappa=inter_kappa, inter_epsilon=inter_epsilon)
-                        (B_eq, b_eq) = cfg.get_eq(skuma=True)[0]
-                        cfg.B0 = B_eq
-                        cfg.b0 = b_eq
-                        _, data_avg = cfg.run_and_avg(save_all=True, save_figs=True)
-                        for type in ['Bb', 'kappa', 'epsilon', 'Omega']:
-                            cfg.plot_time(data_avg, type=type, show=False)
+                        kappaeq_v1_folder = os.path.join(skumanich_v1_folder, "kappaeq=" + str(kappaeq))
+                        kappaeq_v2_folder = os.path.join(skumanich_v2_folder, "kappaeq=" + str(kappaeq))
+                        try:
+                            cfg = config(datadir=kappaeq_v1_folder, term='long',
+                                         epsiloneq=epsiloneq, Lambda=Lambda, kappaeq=kappaeq, run_index=1,
+                                         inter_kappa=inter_kappa, inter_epsilon=inter_epsilon,tfin=1000)
+                            (B_eq, b_eq) = cfg.get_eq(skuma=True)[0]
+                            cfg.B0 = B_eq
+                            cfg.b0 = b_eq
+                            _, data_avg, stddevs = cfg.run_and_avg(save_all=True, save_figs=True)
+                            data_v2, std_v2 = skumanich_v2(folder=kappaeq_v2_folder, cfg=cfg, data_avg=data_avg)
+                            for type in ['Bb', 'kappa', 'epsilon', 'Omega']:
+                                cfg.plot_time(data_avg, type=type, show=False, stddevs=stddevs)
+                                cfg.plot_time(data_v2, type=type, show=False, stddevs=std_v2, differentfolder=kappaeq_v2_folder)
+                            plot_B_omega(data_avg, kappaeq_v1_folder, stddevs=stddevs)
+                            plot_B_omega(data_v2, kappaeq_v2_folder, stddevs=std_v2)
+                        except Exception as e:
+                            # Une simulation qui plante (subprocess C++, donnees
+                            # incoherentes, etc.) ne doit pas interrompre les
+                            # kappaeq restants ni les combinaisons Lambda/epsiloneq
+                            # suivantes : on logge et on continue.
+                            tqdm.write(f"[skumanich] echec pour Lambda={Lambda}, epsiloneq={epsiloneq}, "
+                                       f"kappaeq={kappaeq} : {e}")
+                            continue
+                        
 
                 if inter_kappa and inter_epsilon:
                     comportements_folder = os.path.join(epsiloneq_folder, "comportements_divers")
@@ -456,7 +553,7 @@ def big_simus():
                         for i in range(2):
                             cfg = config(datadir=kappaeq_folder, term='mid',
                                          epsiloneq=epsiloneq, Lambda=Lambda, kappaeq=kappaeq, run_index=i + 1,
-                                         inter_kappa=inter_kappa, inter_epsilon=inter_epsilon)
+                                         inter_kappa=inter_kappa, inter_epsilon=inter_epsilon, tfin=1000)
                             (B_eq, b_eq) = cfg.get_eq()[0]
                             cfg.B0 = B_eq
                             cfg.b0 = b_eq
@@ -475,5 +572,5 @@ def big_simus():
     tqdm.write("Simulations d'intermittence : fin")
 
 if __name__ == "__main__":
-    #court_terme()
+    court_terme()
     big_simus()

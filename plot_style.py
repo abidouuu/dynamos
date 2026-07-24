@@ -13,13 +13,14 @@ import matplotlib.pyplot as plt
 # Okabe-Ito colorblind-safe palette (Okabe & Ito, 2008).
 _OKABE_ITO = {
     "black":         "#000000",
-    "orange":        "#E69F00",
-    "sky_blue":      "#56B4E9",
-    "bluish_green":  "#009E73",
+    "orange":        "#BB9138",
+    "sky_blue":      "#508CAE",
+    "bluish_green":  "#248D71",
     "yellow":        "#F0E442",
-    "blue":          "#0072B2",
+    "blue":          "#235F82",
     "vermillion":    "#D55E00",
     "reddish_purple":"#CC79A7",
+    "sky_orange":    "#D6AA68",
 }
 
 PLOT_STYLE = {
@@ -44,7 +45,7 @@ PLOT_STYLE = {
     # ---- Font sizes (points, at final print size) --------------------------
     "label_fontsize": 9,
     "title_fontsize": 10,
-    "legend_fontsize": 7.5,
+    "legend_fontsize": 12,
     "tick_fontsize": 8,
 
     # ---- Grid / axes --------------------------------------------------------

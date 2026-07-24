@@ -9,7 +9,7 @@ from typing import Literal
 from tqdm import tqdm
 from itertools import product
 import statistics as stat
-from plot_style import PLOT_STYLE
+from plot_style import PLOT_STYLE, _OKABE_ITO
 
 #configuration : classe de paramètres. par défaut short term 
 class config:
@@ -75,14 +75,11 @@ class config:
                 simu_title="simu_"
             if tfin is None : 
                 if term=='short' : tfin=400
-                elif term=='mid' : tfin=5e4
-                elif term=='long' : tfin=2e5
+                elif term=='mid' : tfin=2e5
+                elif term=='long' : tfin=1e6
                 else:tfin=40
 
             if run_index is not None:
-                # Deterministic folder name: reruns with the same run_index land
-                # on the same folder, which is what allows detecting and reusing
-                # already-computed data (see config.run()).
                 self.folder = os.path.join(self.datadir, simu_title + str(run_index))
             else:
                 simu_number = 1
@@ -163,11 +160,9 @@ class config:
         if len(sol)==0 : sol=landau()
         return sol
         
-    #écrire configuration.in
-    def write_config_file(self, differentfile=None):
-        eq=self.get_eq()
-        (Beq,beq)=eq[0]
-        text = f"""
+    #texte de configuration.in (factorisé pour pouvoir être comparé à un fichier existant)
+    def _config_text(self, Beq, beq):
+        return f"""
             B0 = {self.B0}
             b0 = {self.b0}
 
@@ -191,6 +186,12 @@ class config:
             Beq = {Beq}
             beq = {beq}
         """.lstrip()
+
+    #écrire configuration.in
+    def write_config_file(self, differentfile=None):
+        eq=self.get_eq()
+        (Beq,beq)=eq[0]
+        text = self._config_text(Beq, beq)
         target_file = self.config_in if differentfile is None else differentfile
         target_dir = os.path.dirname(target_file)
         os.makedirs(target_dir, exist_ok=True)
@@ -204,12 +205,29 @@ class config:
     def run(self, outputname='output.txt', save=False):
         data_path = os.path.join(self.folder, outputname)
 
-        # If the data already exists (e.g. from a previous run with the same
-        # run_index/folder), don't re-run the simulation: just load it.
-        if os.path.exists(data_path):
-            return np.genfromtxt(data_path)
-
+        # Compute the dt a fresh run would use BEFORE deciding whether to
+        # trust any cached output, so the freshness check below compares
+        # like with like.
         self.dt=min(self.dt, 0.01/max(self.epsiloneq, self.Lambda, self.kappaeq))
+
+        # Only reuse a cached output.txt if it was produced with the exact
+        # same configuration (same configuration.in content) as the current
+        # parameters. Otherwise the folder holds stale data from an earlier
+        # experiment (different tfin/dt/etc.) and must be regenerated.
+        # Blindly trusting any pre-existing file here was the root cause of
+        # run_and_avg's "inconsistent shapes" error: some run_index folders
+        # kept old-length data from a previous configuration while others
+        # were freshly computed with new parameters.
+        if os.path.exists(data_path) and os.path.exists(self.config_in):
+            eq = self.get_eq()
+            (Beq, beq) = eq[0]
+            expected_config = self._config_text(Beq, beq)
+            with open(self.config_in, "r", encoding="utf-8") as f:
+                existing_config = f.read()
+            if existing_config == expected_config:
+                return np.genfromtxt(data_path)
+            # stale cache: fall through and regenerate
+
         os.makedirs(self.folder, exist_ok=True)
         self.write_config_file()
         # The C++ program expects the directory containing configuration.in as argv[1].
@@ -266,8 +284,9 @@ class config:
         t = first_data[:, 0]
         values_stack = np.stack([d[:, 1:] for d in data_runs], axis=-1)
         averaged_values = np.mean(values_stack, axis=-1)
+        stddevs = np.std(values_stack,axis=-1)
         data_avg = np.column_stack((t, averaged_values))
-        return data_runs, data_avg
+        return data_runs, data_avg, stddevs
         
     possible_plots = Literal["Bb", "B", "b", "epsilon", "kappa", "Omega"]
     def plot_time(self, data, type: possible_plots,
@@ -276,9 +295,18 @@ class config:
               name=None,
               minimas=None,
               eps=False,
-              differentfolder=None):
+              differentfolder=None,
+              stddevs=None):
 
         t = data[:, 0]
+        if stddevs is not None : 
+            t_ini_Gyr = 1
+            t_fin_Gyr = 10
+            t_sun_Gyr = 4.6
+            t = t_ini_Gyr + (t_fin_Gyr-t_ini_Gyr)*(t/self.tfin)
+
+            B_stddev=stddevs[:,1]
+            b_stddevs=stddevs[:,2]
         B = data[:, 1]
         b = data[:, 2]
 
@@ -308,6 +336,7 @@ class config:
 
         is_B = type in ["Bb", "B"]
         is_b = type in ["Bb", "b"]
+        if is_B or is_b : ax.set_ylabel("Magnetic amplitudes")
 
         # ============================================================
         # Courbes principales
@@ -322,6 +351,9 @@ class config:
                 label=r"$B(t)$"
             )
 
+            if stddevs is not None : 
+                ax.fill_between(t,B-B_stddev,B+b_stddevs, color=_OKABE_ITO["sky_blue"])
+
         if is_b:
             ax.plot(
                 t, b,
@@ -330,6 +362,9 @@ class config:
                 lw=PLOT_STYLE["linewidth"],
                 label=r"$b(t)$"
             )
+
+            if stddevs is not None : 
+                            ax.fill_between(t,b-b_stddevs,b+B_stddev, color=_OKABE_ITO["sky_orange"])
 
         # ============================================================
         # Solutions d'équilibre
@@ -472,10 +507,44 @@ class config:
             ax.set_ylabel("Rotation speed")
 
         # ============================================================
+        # Epsilon en fond, sur son propre axe (uniquement quand on a des
+        # stddevs, i.e. les tracés type "skumanich", et pas sur le plot
+        # d'epsilon lui-même pour éviter la redondance)
+        # ============================================================
+
+        ax_eps = None
+
+        if (
+            stddevs is not None
+            and type != "epsilon"
+            and epsilon is not None
+        ):
+
+            ax_eps = ax.twinx()
+
+            ax_eps.plot(
+                t,
+                epsilon,
+                color="green",
+                linestyle=':',
+                lw=PLOT_STYLE["linewidth"],
+                label=r"$\varepsilon(t)$"
+            )
+
+            ax_eps.set_ylabel("Dynamo number", color="green")
+            ax_eps.tick_params(axis='y', labelcolor="green")
+
+        # ============================================================
         # Style global
         # ============================================================
 
-        ax.set_xlabel("t")
+        if stddevs is not None :
+            ax.set_xlabel("Age (Gyr)")
+            plt.axvline(x=t_sun_Gyr, color=_OKABE_ITO["black"], ls='--', 
+                        linewidth=PLOT_STYLE["linewidth"],
+                        label="Sun")
+        else : 
+            ax.set_xlabel(r"$\varepsilon \cdot t$")
 
         ax.tick_params(
             axis="both",
@@ -489,8 +558,15 @@ class config:
 
         handles, labels = ax.get_legend_handles_labels()
 
+        if ax_eps is not None:
+            handles_eps, labels_eps = ax_eps.get_legend_handles_labels()
+            handles += handles_eps
+            labels += labels_eps
+
         if handles:
             ax.legend(
+                handles,
+                labels,
                 fontsize=PLOT_STYLE["legend_fontsize"]
             )
 
